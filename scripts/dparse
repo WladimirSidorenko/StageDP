@@ -1,0 +1,149 @@
+#!/ust/bin/env python
+# -*- coding: utf-8; mode: python; -*-
+
+##################################################################
+# Imports
+from stagedp.models.parser import RstParser, DFLT_MODEL_DIR
+from stagedp.utils.document import Doc
+from stagedp.utils.token import Token
+from stagedp.models.tree import RstTree
+from typing import Tuple
+import argparse
+import json
+import logging
+
+
+##################################################################
+# Variables and Constants
+LOGGER = logging.getLogger("dparse")
+sh = logging.StreamHandler()
+sh.setLevel(logging.INFO)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(sh)
+
+
+##################################################################
+# Methods
+def parse_tok(itok: dict) -> Token:
+    """Convert JSON dict to `Token`.
+
+    Args:
+      itok: JSON token representation
+
+    """
+    tok = Token()
+    tok.word = itok["form"]
+    tok.lemma = itok["lemma"]
+    tok.pos = itok["tag"]
+    tok.dep_label = itok["rel"]
+    tok.sidx = itok["snt_id"]
+    tok.pidx = 0                # we always assume one paragraph
+    return tok
+
+
+def parse_doc(idoc: dict) -> Doc:
+    """Convert JSON dist to a `Document` object suitable for parsing.
+
+    Args:
+      parse: disourse parser
+      fname: path to the input file
+
+    """
+    doc = Doc()
+    # EDUs numbering starts from 1 (see stagedp/models/state.py:27)
+    doc.edu_dict = {i: edu_i["toks"]
+                    for i, edu_i in enumerate(idoc["edus"], 1)}
+    token_id2edu_id = {
+        tok_id: edu_id
+        for edu_id, token_ids in doc.edu_dict.items()
+        for tok_id in token_ids
+    }
+    doc.token_dict = tok_dict = {}
+    snt_offset = 0
+    prev_snt_id = -1
+    for i, tok_i in enumerate(idoc["toks"]):
+        doc_tok = parse_tok(tok_i)
+        snt_id = doc_tok.sidx
+        if snt_id != prev_snt_id:
+            prev_snt_id = snt_id
+            snt_offset = i
+        doc_tok.tidx = i + 1 - snt_offset
+        hidx = tok_i["prnt"] + 1
+        if hidx > 0:
+            hidx -= snt_offset
+        doc_tok.hidx = hidx
+        doc_tok.eduidx = token_id2edu_id[i]
+        tok_dict[i] = doc_tok
+    return doc
+
+
+def get_node_id(node: RstTree, node_id: int) -> int:
+    """Check nuclearity status of a node.
+
+    """
+    # leaf
+    if node.edu_span[0] == node.edu_span[1]:
+        return node.edu_span[0] - 1
+    return node_id
+
+
+def rst2json(node: RstTree, node_id: int) -> Tuple[dict, int]:
+    _id = get_node_id(node, node_id)
+    children = []
+    result = {
+        "id": _id,
+        "rel2par": node.relation,
+        "n/s": node.prop,
+        "children": children
+    }
+    if _id == node_id:
+        node_id -= 1
+    for child_i in (node.lnode, node.rnode):
+        if child_i is not None:
+            child, node_id = rst2json(child_i, node_id)
+            children.append(child)
+    return result, node_id
+
+
+def process_file(parser: RstParser, fname: str):
+    """Discourse-parse single JSON file.
+
+    Args:
+      parse: disourse parser
+      fname: path to the input file
+
+    """
+    LOGGER.info("Analyzing file %s", fname)
+    with open(fname) as ifile:
+        data = json.load(ifile)
+    for doc_i in data["docs"]:
+        rst_tree = parser.sr_parse(parse_doc(doc_i))
+        doc_i["rst_trees"] = {
+            "wang": rst2json(rst_tree.tree, -1)[0]
+        }
+    with open(fname, 'w') as ofile:
+        json.dump(data, ofile)
+
+
+def main():
+    """Main method for parsing JSON files.
+
+    """
+    argparser = argparse.ArgumentParser(
+        description="Script for discourse parsing of JSON files."
+    )
+    argparser.add_argument("files", help="JSON files to parse",
+                           nargs='+')
+    args = argparser.parse_args()
+
+    parser = RstParser()
+    parser.load(DFLT_MODEL_DIR)
+
+    for fname in args.files:
+        process_file(parser, fname)
+
+
+##################################################################
+# Main
+if __name__ == "__main__":
+    main()

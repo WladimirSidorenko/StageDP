@@ -4,10 +4,10 @@
 # created_at: 10/27/2016 下午8:04
 import os
 
-from eval.metrics import Metrics
-from models.parser import RstParser
-from models.tree import RstTree
-from utils.document import Doc
+from stagedp.eval.metrics import Metrics
+from stagedp.models.parser import RstParser
+from stagedp.models.tree import RstTree
+from stagedp.utils.document import Doc
 
 
 class Evaluator(object):

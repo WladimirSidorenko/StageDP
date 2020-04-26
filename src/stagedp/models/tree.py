@@ -6,14 +6,16 @@
 import sys
 from os.path import isfile
 
-from features.extraction import ActionFeatureGenerator, RelationFeatureGenerator
-from models.state import ParsingState
+from stagedp.features.extraction import (
+    ActionFeatureGenerator, RelationFeatureGenerator
+)
+from stagedp.models.state import ParsingState
 from nltk import Tree
 from nltk.draw import TreeWidget
 from nltk.draw.util import CanvasFrame
-from utils.document import Doc
-from utils.other import rel2class
-from utils.span import SpanNode
+from stagedp.utils.document import Doc
+from stagedp.utils.other import rel2class
+from stagedp.utils.span import SpanNode
 
 
 class RstTree(object):

@@ -7,8 +7,8 @@ import pickle
 from operator import itemgetter
 
 from sklearn.svm import LinearSVC
-from utils.other import reverse_dict
-from utils.other import vectorize
+from stagedp.utils.other import reverse_dict
+from stagedp.utils.other import vectorize
 
 
 class ActionClassifier(object):

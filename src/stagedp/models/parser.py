@@ -4,24 +4,30 @@
 # created_at: 10/27/2016 下午7:32
 import os
 
-from features.extraction import ActionFeatureGenerator, RelationFeatureGenerator
-from models.classifiers import ActionClassifier, RelationClassifier
-from models.state import ParsingState
-from models.tree import RstTree
+from stagedp.features.extraction import (
+    ActionFeatureGenerator, RelationFeatureGenerator
+)
+from stagedp.models.classifiers import ActionClassifier, RelationClassifier
+from stagedp.models.state import ParsingState
+from stagedp.models.tree import RstTree
+
+
+DFLT_MODEL_DIR = os.path.join(os.path.dirname(__file__),
+                              "..", "..", "..", "data", "model")
 
 
 class RstParser(object):
     def __init__(self, action_clf=None, relation_clf=None):
-        self.action_clf = action_clf if action_clf is not None else ActionClassifier()
-        self.relation_clf = relation_clf if relation_clf is not None else RelationClassifier()
+        self.action_clf = action_clf or ActionClassifier()
+        self.relation_clf = relation_clf or RelationClassifier()
 
-    def save(self, model_dir):
+    def save(self, model_dir=DFLT_MODEL_DIR):
         """Save models
         """
         # self.action_clf.save(os.path.join(model_dir, 'model.action.gz'))
         self.relation_clf.save(os.path.join(model_dir, 'model.relation.gz'))
 
-    def load(self, model_dir):
+    def load(self, model_dir=DFLT_MODEL_DIR):
         """ Load models
         """
         self.action_clf.load(os.path.join(model_dir, 'model.action.gz'))

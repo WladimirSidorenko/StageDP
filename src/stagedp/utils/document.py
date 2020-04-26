@@ -4,7 +4,7 @@
 # created_at: 10/26/2016 下午9:06
 from os.path import isfile
 
-from utils.token import Token
+from stagedp.utils.token import Token
 
 
 class Doc(object):

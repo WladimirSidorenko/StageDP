@@ -3,9 +3,9 @@
 # author: Yizhong
 # created_at: 10/27/2016 上午11:15
 
-from utils.document import Doc
-from utils.other import ActionError, ParseError
-from utils.span import SpanNode
+from stagedp.utils.document import Doc
+from stagedp.utils.other import ActionError, ParseError
+from stagedp.utils.span import SpanNode
 
 
 class ParsingState(object):

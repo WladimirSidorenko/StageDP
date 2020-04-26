@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # author: Yizhong
 # created_at: 10/27/2016 上午10:32
-from utils.other import action2str
+from stagedp.utils.other import action2str
 
 
 class ActionFeatureGenerator(object):
@@ -434,7 +434,8 @@ class ActionFeatureGenerator(object):
             #     yield (span_name, 'Nuc-pos', token.pos)
             text_tidx = [self.doc.token_dict[token].tidx for token in text]
             text_heads = [self.doc.token_dict[token].hidx for token in text]
-            text_deps = [self.doc.token_dict[token].dep_label for token in text]
+            text_deps = [self.doc.token_dict[token].dep_label
+                         for token in text]
             for idx, head in enumerate(text_heads):
                 if head not in text_tidx:
                     head_token = self.doc.token_dict[text_tidx[idx] - 1]
